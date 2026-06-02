@@ -3,19 +3,17 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <ArduinoJson.h>
+#include "secrets.h"
 
 const float TRACK_LENGTH = 400.0;
 const int NUM_LEDS = 12000;
-
-const char* WIFI_NAME = "Samsung Galaxy S10_1533";
-const char* WIFI_PASSWORD = "Hanak524";
 
 WebServer server(80);
 
 float paceSecondsPerMile = 0.0;
 float distanceMeters = 0.0;
 
-enum SimState { IDLE, RUNNING, WAITING };
+enum SimState { IDLE, RUNNING };
 SimState simulationState = IDLE;
 
 unsigned long startMillis = 0;
@@ -39,7 +37,6 @@ String stateToString() {
   switch (simulationState) {
     case IDLE: return "idle";
     case RUNNING: return "running";
-    case WAITING: return "waiting";
   }
   return "idle";
 }
@@ -102,7 +99,7 @@ void setup() {
   Serial.begin(115200);
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_NAME, WIFI_PASSWORD);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -136,7 +133,7 @@ void loop() {
   float runnerPosition = speed * elapsedSec;
 
   if (runnerPosition >= distanceMeters) {
-    simulationState = WAITING;
+    simulationState = IDLE;
     Serial.println("Simulation complete; waiting for new input.");
     return;
   }

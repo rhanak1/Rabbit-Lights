@@ -56,11 +56,13 @@ useEffect(() => {
 
   return (
     <Layout>
-      <Header></Header>
+      <Header style={{height:128}}>
+        <h1 style={{ color: 'white', textAlign: 'left' }}>Rabbit Lights</h1>
+      </Header>
       <Content>
         <section id="center">
           <div>
-            <h1>Set Lights</h1>
+            <h1 style={{color: 'black'}}>Set Lights</h1>
 
             <Form form={form} onFinish={onFinish} layout="vertical" disabled={deviceState === 'running '}>
               <Form.Item
@@ -72,7 +74,7 @@ useEffect(() => {
               </Form.Item>
 
               <Form.Item
-                label="Distance"
+                label="Distance (meters)"
                 name="distance"
                 rules={[{ required: true, message: 'Enter a distance value' }]}
               >
