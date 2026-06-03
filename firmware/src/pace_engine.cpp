@@ -1,0 +1,70 @@
+#include "pace_engine.h"
+#include "config.h"
+#include "utils.h"
+#include <math.h>
+
+static Config config;
+static Runtime runtime;
+static EngineState engineState = EngineState::Idle;
+
+void engineSetup() {
+  engineState = EngineState::Idle;
+  config = Config{};
+  runtime = Runtime{};
+}
+
+void startEngine(float pace, float distance) {
+  config.pace = pace;
+  config.distance = distance;
+  runtime.startTime = millis();
+  runtime.runnerPosition = 0.0f;
+  runtime.ledPosition = 0.0f;
+  runtime.ledIndex = 0;
+  engineState = EngineState::Running;
+}
+
+void engineLoop() {
+  if (engineState != EngineState::Running) return;
+
+  float elapsedSec = (millis() - runtime.startTime) / 1000.0f;
+  float speed = paceToSpeed(config.pace);
+
+  runtime.runnerPosition = speed * elapsedSec;
+
+  if (runtime.runnerPosition >= config.distance) {
+    runtime.runnerPosition = config.distance;
+    engineState = EngineState::Idle;
+    Serial.println("Simulation complete; waiting for new input.");
+    return;
+  }
+
+  runtime.ledPosition = fmod(runtime.runnerPosition, TRACK_LENGTH);
+  if (runtime.ledPosition < 0) {
+    runtime.ledPosition += TRACK_LENGTH;
+  }
+
+  runtime.ledIndex = (int)((runtime.ledPosition / TRACK_LENGTH) * NUM_LEDS);
+  if (runtime.ledIndex < 0) runtime.ledIndex = 0;
+  if (runtime.ledIndex >= NUM_LEDS) runtime.ledIndex = NUM_LEDS - 1;
+
+  Serial.print("Time: ");
+  Serial.print(elapsedSec);
+  Serial.print(" | Distance: ");
+  Serial.print(config.distance);
+  Serial.print("m | Position: ");
+  Serial.print(runtime.runnerPosition);
+  Serial.print("m | LED: ");
+  Serial.println(runtime.ledIndex);
+}
+
+EngineState getEngineState() {
+  return engineState;
+}
+
+Config getConfig() {
+  return config;
+}
+
+Runtime getRuntime() {
+  return runtime;
+}
