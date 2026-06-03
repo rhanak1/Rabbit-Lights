@@ -8,15 +8,17 @@
 const float TRACK_LENGTH = 400.0;
 const int NUM_LEDS = 12000;
 
+
 WebServer server(80);
-
-float paceSecondsPerMile = 0.0;
-float distanceMeters = 0.0;
-
 enum SimState { IDLE, RUNNING };
 SimState simulationState = IDLE;
 
+float paceSecondsPerMile;
+float distanceMeters;
+float runnerPosition;
+float ledPosition;
 unsigned long startMillis = 0;
+
 
 float paceToMetersPerSecond(float paceSecPerMile) {
   return 1609.34 / paceSecPerMile;
@@ -46,8 +48,8 @@ void handleStatus() {
 
   String response = "{";
   response += "\"state\":\"" + stateToString() + "\",";
-  response += "\"pace\":" + String(paceSecondsPerMile, 2) + ",";
-  response += "\"distance\":" + String(distanceMeters, 2);
+  response += "\"position\":" + String(ledPosition, 2) + ",";
+  response += "\"distance left\":" + String(distanceMeters - runnerPosition, 2);
   response += "}";
 
   server.send(200, "application/json", response);
@@ -130,7 +132,7 @@ void loop() {
   float elapsedSec = (millis() - startMillis) / 1000.0;
   float speed = paceToMetersPerSecond(paceSecondsPerMile);
 
-  float runnerPosition = speed * elapsedSec;
+  runnerPosition = speed * elapsedSec;
 
   if (runnerPosition >= distanceMeters) {
     simulationState = IDLE;
@@ -138,7 +140,7 @@ void loop() {
     return;
   }
 
-  float ledPosition = fmod(runnerPosition, TRACK_LENGTH);
+  ledPosition = fmod(runnerPosition, TRACK_LENGTH);
   if (ledPosition < 0) {
     ledPosition += TRACK_LENGTH;
   }
@@ -159,6 +161,4 @@ void loop() {
   Serial.print(runnerPosition);
   Serial.print("m | LED: ");
   Serial.println(ledIndex);
-
-  delay(20);
 }
