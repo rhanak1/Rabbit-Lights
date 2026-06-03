@@ -8,6 +8,7 @@ function App() {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [deviceState, setDeviceState] = useState('idle')
+  const [raceStatus, setRaceStatus] = useState({ distanceLeft: 0, position: 0, runnerPosition: 0 })
 
 useEffect(() => {
   const id = setInterval(async () => {
@@ -15,6 +16,11 @@ useEffect(() => {
       const res = await fetch('http://10.21.245.247/status')
       const data = await res.json()
       setDeviceState(data.state)
+      setRaceStatus({
+        distanceLeft: data.distanceLeft,
+        position: data.position,
+        runnerPosition: data.runnerPosition,
+      })
     } catch (err) {
       setDeviceState('offline')
     }
@@ -87,6 +93,9 @@ useEffect(() => {
                 </Button>
               </Form.Item>
             </Form>
+            <p>Distance Left: {raceStatus.distanceLeft}</p>
+            <p>Position: {raceStatus.position}</p>
+            <p>Runner Position: {raceStatus.runnerPosition}</p>
           </div>
         </section>
       </Content>
