@@ -25,10 +25,10 @@ static void handleStatus() {
   EngineState state = getEngineState();
 
   String response = "{";
-  response += "\"state\":\"" + String(stateToString(state)) + "m\",";
-  response += "\"position\":" + String(runtime.ledPosition, 2) + "m,";
-  response += "\"runnerPosition\":" + String(runtime.runnerPosition, 2) + "m,";
-  response += "\"distanceLeft\":" + String(config.distance - runtime.runnerPosition, 2) + "m";
+  response += "\"state\":\"" + String(stateToString(state)) + "\",";
+  response += "\"position\":" + String(runtime.ledPosition, 2) + ",";
+  response += "\"runnerPosition\":" + String(runtime.runnerPosition, 2) + ",";
+  response += "\"distanceLeft\":" + String(config.distance - runtime.runnerPosition, 2);
   response += "}";
 
   server.send(200, "application/json", response);
