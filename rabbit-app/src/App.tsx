@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Form, InputNumber, Button, message, Layout } from 'antd'
+import { Form, InputNumber, Button, message, Layout, Space } from 'antd'
 import './App.css'
 
 const { Header, Content, Footer } = Layout
@@ -29,12 +29,12 @@ useEffect(() => {
   return () => clearInterval(id)
 }, [])
 
-  const onFinish = async (values: { pace: any; distance: any }) => {
+  const onFinish = async (values: { pace_min: number; pace_sec: number; distance: number }) => {
     try {
       setLoading(true)
 
       const payload = {
-        pace: values.pace,
+        pace: values.pace_min * 60 + values.pace_sec,
         distance: values.distance,
       }
 
@@ -70,14 +70,23 @@ useEffect(() => {
           <div>
             <h1 style={{color: 'black'}}>Set Lights</h1>
 
-            <Form form={form} onFinish={onFinish} layout="vertical" disabled={deviceState === 'running '}>
-              <Form.Item
-                label="Pace (seconds per mile)"
-                name="pace"
-                rules={[{ required: true, message: 'Enter a pace value' }]}
-              >
-                <InputNumber style={{ width: '100%' }} />
-              </Form.Item>
+            <Form form={form} onFinish={onFinish} layout="vertical" disabled={deviceState === 'running'}>
+              <Space.Compact block>
+                <Form.Item
+                  label="Minutes"
+                  name="pace_min"
+                  rules={[{ required: true, message: 'Enter a pace value' }]}
+                >
+                  <InputNumber style={{ width: '100%' }} />
+                </Form.Item>
+                <Form.Item
+                  label="Seconds"
+                  name="pace_sec"
+                  rules={[{ required: true, message: 'Enter a pace value' }]}
+                >
+                  <InputNumber style={{ width: '100%' }} />
+                </Form.Item>
+              </Space.Compact>
 
               <Form.Item
                 label="Distance (meters)"
