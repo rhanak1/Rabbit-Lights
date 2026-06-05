@@ -1,11 +1,22 @@
 #include "pace_engine.h"
 #include "config.h"
 #include "utils.h"
+#include "web_server.h"
 #include <math.h>
 
 static Config config;
 static Runtime runtime;
 static EngineState engineState = EngineState::Idle;
+static unsigned long lastBroadcast = 0;
+
+void updateTelemetry() {
+  unsigned long now = millis();
+
+  if (now - lastBroadcast >= 200) {
+    lastBroadcast = now;
+    broadcastStatus();
+  }
+}
 
 void engineSetup() {
   engineState = EngineState::Idle;

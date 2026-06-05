@@ -1,10 +1,12 @@
 #include "web_server.h"
 #include <WebServer.h>
+#include <WebSocketsServer.h>
 #include <ArduinoJson.h>
 #include "pace_engine.h"
 #include "utils.h"
 
 static WebServer server(80);
+static WebSocketsServer webSocket(81);
 
 static void addCorsHeaders() {
   server.sendHeader("Access-Control-Allow-Origin", "*");
@@ -17,21 +19,28 @@ static void handleOptions() {
   server.send(204);
 }
 
-static void handleStatus() {
-  addCorsHeaders();
-
+static String buildStatusJson() {
   Config config = getConfig();
   Runtime runtime = getRuntime();
   EngineState state = getEngineState();
 
-  String response = "{";
-  response += "\"state\":\"" + String(stateToString(state)) + "\",";
-  response += "\"position\":" + String(runtime.ledPosition, 2) + ",";
-  response += "\"runnerPosition\":" + String(runtime.runnerPosition, 2) + ",";
-  response += "\"distanceLeft\":" + String(config.distance - runtime.runnerPosition, 2);
-  response += "}";
+  JsonDocument doc;
 
-  server.send(200, "application/json", response);
+  doc["type"] = "status";
+  doc["state"] = stateToString(state);
+  doc["position"] = runtime.ledPosition;
+  doc["runnerPosition"] = runtime.runnerPosition;
+  doc["distanceLeft"] = config.distance - runtime.runnerPosition;
+
+  String response;
+  serializeJson(doc, response);
+
+  return response;
+}
+
+static void handleStatus() {
+  addCorsHeaders();
+  server.send(200, "application/json", buildStatusJson());
 }
 
 static void handleSetValues() {
@@ -71,14 +80,58 @@ static void handleSetValues() {
   server.send(200, "application/json", "{\"status\":\"ok\"}");
 }
 
+static void webSocketEvent(
+  uint8_t clientNum,
+  WStype_t type,
+  uint8_t *payload,
+  size_t length
+) {
+  switch (type) {
+
+    case WStype_CONNECTED: {
+      Serial.printf(
+        "WS Client %u connected\n",
+        clientNum
+      );
+
+      String statusJson = buildStatusJson();
+
+      webSocket.sendTXT(
+        clientNum,
+        statusJson.c_str()
+      );
+
+      break;
+  }
+
+    case WStype_DISCONNECTED:
+      Serial.printf("WS Client %u disconnected\n", clientNum);
+      break;
+
+    default:
+      break;
+  }
+}
+
+void broadcastStatus() {
+  String statusJson = buildStatusJson();
+  webSocket.broadcastTXT(statusJson);
+}
+
 void webServerSetup() {
   server.on("/status", HTTP_GET, handleStatus);
   server.on("/status", HTTP_OPTIONS, handleOptions);
+
   server.on("/set", HTTP_OPTIONS, handleOptions);
   server.on("/set", HTTP_POST, handleSetValues);
+
   server.begin();
+
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
 }
 
 void webServerLoop() {
   server.handleClient();
+  webSocket.loop();
 }
