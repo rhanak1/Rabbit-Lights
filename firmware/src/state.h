@@ -13,6 +13,7 @@ struct Config {
 
 struct Runtime {
   unsigned long startTime = 0;
+  float elapsedTime = 0.0f;
   float runnerPosition = 0.0f;
   float ledPosition = 0.0f;
   int ledIndex = 0;

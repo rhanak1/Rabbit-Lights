@@ -29,6 +29,7 @@ void startEngine(float pace, float distance) {
   config.distance = distance;
   runtime.startTime = millis();
   runtime.runnerPosition = 0.0f;
+  runtime.elapsedTime = 0.0f;
   runtime.ledPosition = 0.0f;
   runtime.ledIndex = 0;
   engineState = EngineState::Running;
@@ -37,10 +38,10 @@ void startEngine(float pace, float distance) {
 void engineLoop() {
   if (engineState != EngineState::Running) return;
 
-  float elapsedSec = (millis() - runtime.startTime) / 1000.0f;
+  runtime.elapsedTime = (millis() - runtime.startTime) / 1000.0f;
   float speed = paceToSpeed(config.pace);
 
-  runtime.runnerPosition = speed * elapsedSec;
+  runtime.runnerPosition = speed * runtime.elapsedTime;
 
   if (runtime.runnerPosition >= config.distance) {
     runtime.runnerPosition = config.distance;
@@ -59,7 +60,7 @@ void engineLoop() {
   if (runtime.ledIndex >= NUM_LEDS) runtime.ledIndex = NUM_LEDS - 1;
 
   Serial.print("Time: ");
-  Serial.print(elapsedSec);
+  Serial.print(runtime.elapsedTime);
   Serial.print(" | Distance: ");
   Serial.print(config.distance);
   Serial.print("m | Position: ");

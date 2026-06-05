@@ -8,7 +8,7 @@ function App() {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [deviceState, setDeviceState] = useState('idle')
-  const [raceStatus, setRaceStatus] = useState({ distanceLeft: 0, position: 0, runnerPosition: 0 })
+  const [raceStatus, setRaceStatus] = useState({ elapsedTime: 0, position: 0, runnerPosition: 0 })
 
   useEffect(() => {
     const loadInitialStatus = async () => {
@@ -24,7 +24,7 @@ function App() {
         setDeviceState(data.state);
 
         setRaceStatus({
-          distanceLeft: data.distanceLeft,
+          elapsedTime: data.elapsedTime,
           position: data.position,
           runnerPosition: data.runnerPosition,
         });
@@ -58,7 +58,7 @@ function App() {
         setDeviceState(data.state);
 
         setRaceStatus({
-          distanceLeft: data.distanceLeft,
+          elapsedTime: data.elapsedTime,
           position: data.position,
           runnerPosition: data.runnerPosition,
         });
@@ -163,7 +163,7 @@ function App() {
                 </Button>
               </Form.Item>
             </Form>
-            <p>Distance Left: {raceStatus.distanceLeft}</p>
+            <p>Elapsed Time: {raceStatus.elapsedTime}</p>
             <p>Position: {raceStatus.position}</p>
             <p>Runner Position: {raceStatus.runnerPosition}</p>
           </div>

@@ -30,7 +30,7 @@ static String buildStatusJson() {
   doc["state"] = stateToString(state);
   doc["position"] = runtime.ledPosition;
   doc["runnerPosition"] = runtime.runnerPosition;
-  doc["distanceLeft"] = config.distance - runtime.runnerPosition;
+  doc["elapsedTime"] = runtime.elapsedTime;
 
   String response;
   serializeJson(doc, response);
