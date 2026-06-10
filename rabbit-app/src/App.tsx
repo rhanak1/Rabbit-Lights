@@ -8,26 +8,87 @@ function App() {
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [deviceState, setDeviceState] = useState('idle')
-  const [raceStatus, setRaceStatus] = useState({ distanceLeft: 0, position: 0, runnerPosition: 0 })
+  const [raceStatus, setRaceStatus] = useState({ elapsedTime: 0, position: 0, runnerPosition: 0 })
 
-useEffect(() => {
-  const id = setInterval(async () => {
-    try {
-      const res = await fetch('http://10.21.245.247/status')
-      const data = await res.json()
-      setDeviceState(data.state)
-      setRaceStatus({
-        distanceLeft: data.distanceLeft,
-        position: data.position,
-        runnerPosition: data.runnerPosition,
-      })
-    } catch (err) {
-      setDeviceState('offline')
-    }
-  }, 1000)
+  useEffect(() => {
+    const loadInitialStatus = async () => {
+      try {
+        const res = await fetch('http://10.21.245.247/status');
 
-  return () => clearInterval(id)
-}, [])
+        if (!res.ok) {
+          throw new Error();
+        }
+
+        const data = await res.json();
+
+        setDeviceState(data.state);
+
+        setRaceStatus({
+          elapsedTime: data.elapsedTime,
+          position: data.position,
+          runnerPosition: data.runnerPosition,
+        });
+      } catch {
+        setDeviceState('offline');
+      }
+    };
+
+    loadInitialStatus();
+  }, []);
+
+  useEffect(() => {
+    let reconnectTimer: number;
+
+    const connect = () => {
+      const ws = new WebSocket(
+        'ws://10.21.245.247:81'
+      );
+
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type !== 'status') {
+          return;
+        }
+
+        setDeviceState(data.state);
+
+        setRaceStatus({
+          elapsedTime: data.elapsedTime,
+          position: data.position,
+          runnerPosition: data.runnerPosition,
+        });
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+
+        setDeviceState('offline');
+
+        reconnectTimer = window.setTimeout(
+          connect,
+          2000
+        );
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+
+      return ws;
+    };
+
+    const socket = connect();
+
+    return () => {
+      clearTimeout(reconnectTimer);
+      socket.close();
+    };
+  }, []);
 
   const onFinish = async (values: { pace_min: number; pace_sec: number; distance: number }) => {
     try {
@@ -102,7 +163,7 @@ useEffect(() => {
                 </Button>
               </Form.Item>
             </Form>
-            <p>Distance Left: {raceStatus.distanceLeft}</p>
+            <p>Elapsed Time: {raceStatus.elapsedTime}</p>
             <p>Position: {raceStatus.position}</p>
             <p>Runner Position: {raceStatus.runnerPosition}</p>
           </div>

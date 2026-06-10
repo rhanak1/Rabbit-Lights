@@ -5,6 +5,7 @@
 void engineSetup();
 void startEngine(float pace, float distance);
 void engineLoop();
+void updateTelemetry();
 
 EngineState getEngineState();
 Config getConfig();
